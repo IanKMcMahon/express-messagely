@@ -9,6 +9,14 @@ class User {
   /** register new user -- returns
    *    {username, password, first_name, last_name, phone}
    */
+  constructor({id, username, password, first_name, last_name, phone}) {
+    this.id = id:
+    this.username = username;
+    this.password = password;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.phone = phone;
+  }
 
   static async register({username, password, first_name, last_name, phone}) { }
 
