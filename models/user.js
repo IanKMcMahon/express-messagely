@@ -4,22 +4,33 @@
 
 /** User of the site. */
 
+const db = require("../db");s
+const ExpressError = require("../expressError");
+
 class User {
 
   /** register new user -- returns
    *    {username, password, first_name, last_name, phone}
    */
-  constructor({id, username, password, first_name, last_name, phone}) {
-    this.id = id:
+  constructor({username, password, first_name, last_name, phone}) {
     this.username = username;
     this.password = password;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.firstName = first_name;
+    this.lastName = last_name;
     this.phone = phone;
   }
 
-  static async register({username, password, first_name, last_name, phone}) { }
-
+  static async register({username, password, first_name, last_name, phone}) {
+   const results = await db.query(
+    `INSERT INTO users
+    (username, password, first_name, 
+      last_name, phone)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING username`, [this.username, this.password, 
+        this.first_name, this.last_name, this.phone]
+   );
+   return results.rows.map(row => new User(row));
+  }
   /** Authenticate: is this username/password valid? Returns boolean. */
 
   static async authenticate(username, password) { }
