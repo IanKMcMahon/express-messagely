@@ -12,32 +12,55 @@ class User {
   /** register new user -- returns
    *    {username, password, first_name, last_name, phone}
    */
-  constructor({username, password, first_name, last_name, phone}) {
-    this.username = username;
-    this.password = password;
-    this.firstName = first_name;
-    this.lastName = last_name;
-    this.phone = phone;
-  }
+  // constructor({username, password, first_name, last_name, phone}) {
+  //   this.username = username;
+  //   this.password = password;
+  //   this.firstName = first_name;
+  //   this.lastName = last_name;
+  //   this.phone = phone;
+  // }
 
   static async register({username, password, first_name, last_name, phone}) {
    const results = await db.query(
-    `INSERT INTO users
-    (username, password, first_name, 
-      last_name, phone)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING username`, [this.username, this.password, 
-        this.first_name, this.last_name, this.phone]
+    `INSERT INTO users(
+      username, 
+      password, 
+      first_name, 
+      last_name,
+      phone,
+      join_at,
+      last_login_at)
+      VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
+      RETURNING username, password, first_name, last_name, phone`, 
+      [username, password, first_name, last_name, phone]
    );
-   return results.rows.map(row => new User(row));
+   return results.rows[0];
   }
   /** Authenticate: is this username/password valid? Returns boolean. */
 
-  static async authenticate(username, password) { }
+  static async authenticate(username, password) {
+    const result = await db.query(
+        "SELECT password FROM users WHERE username = $1",
+        [username]);
+    let user = result.rows[0];
+
+    return user && await bcrypt.compare(password, user.password);
+  }
 
   /** Update last_login_at for user */
 
-  static async updateLoginTimestamp(username) { }
+  static async updateLoginTimestamp(username) {
+    const result = await db.query(
+        `UPDATE users
+           SET last_login_at = current_timestamp
+           WHERE username = $1
+           RETURNING username`,
+        [username]);
+
+    if (!result.rows[0]) {
+      throw new ExpressError(`No such user: ${username}`, 404);
+    }
+  }
 
   /** All: basic info on all users:
    * [{username, first_name, last_name, phone}, ...] */
