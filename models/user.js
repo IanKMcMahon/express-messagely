@@ -65,7 +65,19 @@ class User {
   /** All: basic info on all users:
    * [{username, first_name, last_name, phone}, ...] */
 
-  static async all() { }
+  static async all() {
+    const results = db.query(
+      `SELECT 
+      username, 
+      first_name,
+      last_name,
+      phone
+      FROM users
+      WHERE username = $1`,
+      [username]
+    )
+    return results.row[0]
+   }
 
   /** Get: get user by username
    *
