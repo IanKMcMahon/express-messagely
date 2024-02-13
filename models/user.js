@@ -1,14 +1,15 @@
 /** User class for message.ly */
 
+const db = require("../db");
+const bcrypt = require("bcrypt");
+const ExpressError = require("../expressError");
+
+const { BCRYPT_WORK_FACTOR } = require("../config");
 
 
 /** User of the site. */
 
-const db = require("../db");s
-const ExpressError = require("../expressError");
-
 class User {
-
   /** register new user -- returns
    *    {username, password, first_name, last_name, phone}
    */
@@ -21,6 +22,7 @@ class User {
   // }
 
   static async register({username, password, first_name, last_name, phone}) {
+   let hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR); 
    const results = await db.query(
     `INSERT INTO users(
       username, 
@@ -32,7 +34,7 @@ class User {
       last_login_at)
       VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
       RETURNING username, password, first_name, last_name, phone`, 
-      [username, password, first_name, last_name, phone]
+      [username, hashedPassword, first_name, last_name, phone]
    );
    return results.rows[0];
   }
@@ -68,10 +70,10 @@ class User {
   static async all() {
     const results = await db.query(
       `SELECT 
-      username, 
-      first_name,
-      last_name,
-      phone
+        username, 
+        first_name,
+        last_name,
+        phone
       FROM users
       ORDER BY username`);
 
@@ -90,11 +92,11 @@ class User {
   static async get(username) {
     const results = await db.query(
       `SELECT username,
-        first_name,
-        last_name,
-        phone,
-        join_at,
-        last_login_at
+          first_name,
+          last_name,
+          phone,
+          join_at,
+          last_login_at
       FROM users
       WHERE username = $1`,
       [username]
