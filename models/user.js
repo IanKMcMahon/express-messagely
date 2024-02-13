@@ -73,11 +73,10 @@ class User {
       last_name,
       phone
       FROM users
-      WHERE username = $1`,
-      [username]
-    )
-    return results.row[0]
-   }
+      ORDER BY username`);
+
+    return results.rows;   
+  }
 
   /** Get: get user by username
    *
